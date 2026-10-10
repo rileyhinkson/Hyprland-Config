@@ -1,0 +1,57 @@
+{
+  "layer": "top",
+  "position": "bottom",
+  "height": 34,
+  "spacing": 6,
+  "modules-left": ["hyprland/workspaces", "wlr/taskbar"],
+  "modules-center": ["clock"],
+  "modules-right": ["tray", "pulseaudio", "network", "custom/power"],
+
+  "hyprland/workspaces": { "on-click": "activate" },
+
+  "wlr/taskbar": {
+    "format": "{icon}",
+    "icon-size": 18,
+    "tooltip-format": "{title}",
+    "on-click": "activate",
+    "on-click-middle": "close",
+    "on-click-right": "minimize-raise"
+  },
+
+  "clock": {
+    "format": "{:%a %d %b  %H:%M}",
+    "tooltip-format": "<tt>{calendar}</tt>"
+  },
+  "tray": { "spacing": 8 },
+  "pulseaudio": {
+    "format": "VOL {volume}%",
+    "format-muted": "MUTED",
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+  },
+  "network": {
+    "interval": 5,
+    "format-wifi": "<span font_family='FantasqueSansM Nerd Font Propo'>{icon}</span>  {essid}",
+    "format-ethernet": "<span font_family='FantasqueSansM Nerd Font Propo'>󰈀</span>  ETH",
+    "format-linked": "<span font_family='FantasqueSansM Nerd Font Propo'>󰈀</span>  No IP",
+    "format-disconnected": "<span font_family='FantasqueSansM Nerd Font Propo'>󰤮</span>  OFFLINE",
+    "format-disabled": "<span font_family='FantasqueSansM Nerd Font Propo'>󰤭</span>  WIFI OFF",
+    "format-icons": ["󰤟", "󰤢", "󰤥", "󰤨"],
+    "tooltip-format-wifi": "{essid}  {signalStrength}%  {frequency} GHz\n{ipaddr}/{cidr} via {gwaddr}\n⇣ {bandwidthDownBytes}   ⇡ {bandwidthUpBytes}\n\nClick: Wi-Fi menu · Middle: toggle Wi-Fi · Right: settings",
+    "tooltip-format-ethernet": "{ifname}  {ipaddr}/{cidr}\n⇣ {bandwidthDownBytes}   ⇡ {bandwidthUpBytes}",
+    "tooltip-format-disconnected": "Not connected\n\nClick to pick a network",
+    "on-click": "~/.config/waybar/scripts/wifi-menu.sh",
+    "on-click-middle": "~/.config/waybar/scripts/wifi-menu.sh toggle",
+    "on-click-right": "nm-connection-editor"
+  },
+  "custom/power": {
+    "exec": "~/.config/waybar/scripts/power.sh status",
+    "return-type": "json",
+    "interval": 15,
+    "signal": 8,
+    "format": "{}",
+    "tooltip": true,
+    "on-click": "~/.config/waybar/scripts/power.sh menu",
+    "on-click-middle": "~/.config/waybar/scripts/power.sh cycle",
+    "on-click-right": "wlogout"
+  }
+}
