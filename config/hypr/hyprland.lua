@@ -304,12 +304,29 @@ hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
 
+-- Per-monitor workspaces: each monitor has its own 1-10.
+-- Monitors are numbered left to right; the Nth monitor owns workspaces
+-- N*10+1 .. N*10+10 (left 1-10, next 11-20, ...). With one monitor this is
+-- plain 1-10. Waybar labels them 1-10 on every monitor.
+local function monitorWorkspace(i)
+    local active = hl.get_active_monitor()
+    local rank = 0
+    for _, m in ipairs(hl.get_monitors()) do
+        if m.x < active.x then rank = rank + 1 end
+    end
+    return rank * 10 + i
+end
+
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
 for i = 1, 10 do
     local key = i % 10 -- 10 maps to key 0
-    hl.bind(mainMod .. " + " .. key,             hl.dsp.focus({ workspace = i}))
-    hl.bind(mainMod .. " + SHIFT + " .. key,     hl.dsp.window.move({ workspace = i }))
+    hl.bind(mainMod .. " + " .. key, function()
+        hl.dispatch(hl.dsp.focus({ workspace = monitorWorkspace(i) }))
+    end)
+    hl.bind(mainMod .. " + SHIFT + " .. key, function()
+        hl.dispatch(hl.dsp.window.move({ workspace = monitorWorkspace(i) }))
+    end)
 end
 
 -- Example special workspace (scratchpad)
@@ -317,8 +334,8 @@ hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic"))
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
 
 -- Scroll through existing workspaces with mainMod + scroll
-hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
-hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
+hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "m+1" }))
+hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "m-1" }))
 
 -- Move/resize windows with mainMod + LMB/RMB and dragging
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })

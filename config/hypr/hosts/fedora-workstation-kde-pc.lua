@@ -24,3 +24,15 @@ hl.monitor({
     scale     = 1,
     transform = 1,
 })
+
+-- Keep each monitor's workspaces on that monitor (see monitorWorkspace in
+-- hyprland.lua): left 1-10, middle 11-20, right 21-30. Each starts on its first.
+for i, output in ipairs({ "HDMI-A-2", "DP-1", "HDMI-A-1" }) do
+    for n = 1, 10 do
+        hl.workspace_rule({
+            workspace = tostring((i - 1) * 10 + n),
+            monitor   = output,
+            default   = n == 1 or nil,
+        })
+    end
+end
