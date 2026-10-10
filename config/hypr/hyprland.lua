@@ -28,7 +28,15 @@ hl.monitor({
     position = "auto",
     scale    = "auto",
 })
-require("monitors")
+-- Per-machine settings (monitor layouts, scaling) live in hosts/<hostname>.lua
+local hostfile = io.open("/proc/sys/kernel/hostname")
+local hostname = hostfile and hostfile:read("l")
+if hostfile then hostfile:close() end
+if hostname then
+    pcall(require, "hosts." .. hostname)
+end
+-- Optional untracked overrides written by nwg-displays on this machine
+pcall(require, "monitors")
 
 
 ---------------------
@@ -474,5 +482,4 @@ hl.config({
     },
 })
 
--- Make Steam scale its own UI to match the 1.5 monitor scale.
-hl.env("STEAM_FORCE_DESKTOPUI_SCALING", "1.5")
+-- Steam's own UI scale is set per machine in hosts/<hostname>.lua.

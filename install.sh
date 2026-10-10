@@ -25,8 +25,4 @@ for dir in "$REPO"/config/*/; do
 done
 link "$REPO/wallpapers" "$HOME/Pictures/Wallpapers"
 
-# Each machine keeps its own monitor layout. Start from defaults if missing.
-for f in monitors.lua monitors.conf; do
-    [ -e "$REPO/config/hypr/$f" ] || cp "$REPO/config/hypr/$f.example" "$REPO/config/hypr/$f"
-done
-echo "Done. Run nwg-displays to set this machine's monitors, then: hyprctl reload"
+echo "Done. Add config/hypr/hosts/$(cat /proc/sys/kernel/hostname).lua for this machine's monitors, then: hyprctl reload"
