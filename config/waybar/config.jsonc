@@ -9,9 +9,19 @@
   "position": "bottom",
   "height": 34,
   "spacing": 6,
-  "modules-left": ["hyprland/workspaces", "wlr/taskbar"],
+  "modules-left": ["custom/session", "hyprland/workspaces", "wlr/taskbar"],
   "modules-center": ["clock"],
   "modules-right": ["tray", "custom/theme", "pulseaudio", "bluetooth", "network#wifi", "network", "custom/power"],
+
+  // The penguin: who's logged in, power off / restart / log out / switch user.
+  "custom/session": {
+    "exec": "~/.config/waybar/scripts/session-popup.py status",
+    "return-type": "json",
+    "interval": "once",
+    "format": "<span font_family='FantasqueSansM Nerd Font Propo'>{}</span>",
+    "tooltip": true,
+    "on-click": "~/.config/waybar/scripts/session-popup.py"
+  },
 
   "hyprland/workspaces": {
     "on-click": "activate",

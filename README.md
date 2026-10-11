@@ -34,10 +34,12 @@ cd ~/dotfiles && git add -A && git commit -m "..." && git push   # send changes
 
 ## The bar
 
-Waybar, bottom edge, on every monitor. The right-hand side, left to right:
+Waybar, bottom edge, on every monitor. Left to right:
 
 | Widget | Click | Middle | Right | Scroll |
 |---|---|---|---|---|
+| penguin | session panel | — | — | — |
+| workspaces, taskbar | — | — | — | — |
 | tray | — | — | — | — |
 | `● Color` | colour picker panel | — | — | — |
 | `VOL 45%` | audio panel | mute | — | volume ±5% |
@@ -62,8 +64,9 @@ Two things in there that look weird but are on purpose:
 There are two different UI styles here and it's not an accident:
 
 - **GTK panels** (`audio-popup.py`, `wifi-popup.py`, `bt-popup.py`,
-  `theme-popup.py`) are layer-shell popups that expand above the bar. They can
-  do gradients, sliders and inline password boxes, so they get the nice look.
+  `theme-popup.py`, `session-popup.py`) are layer-shell popups that expand
+  above the bar. They can do gradients, sliders and inline password boxes, so
+  they get the nice look.
 - **rofi menus** (`wifi-menu.sh`, `power.sh menu`, `bt-menu.sh`, `keybinds.py`)
   are keyboard-driven and type-to-search. rofi flat out cannot draw a gradient,
   so accents there are solid colours.
@@ -81,8 +84,22 @@ copy-pasted between them:
   on a three-monitor setup, clicking on the other two screens did nothing. Each
   catcher also stops short of the bar so the widget itself stays clickable.
 
-If you fix a dismissal bug in one panel, fix it in all four or they'll start
-behaving differently from each other.
+The shared parts live in `popup_common.py` — `session-popup.py` imports from
+it. The four older panels still carry their own copies, so for now a dismissal
+fix has to land in all of them; moving them onto `popup_common.py` is the
+obvious cleanup.
+
+### The penguin
+
+Far left of the bar. Click it for a session panel: who's logged in, then
+**Power off**, **Restart**, **Log out** and **Switch user**. The three that end
+the session need a second click within a few seconds — the panel is one click
+from the bar and a misclick there is expensive. Switch user doesn't, since it
+only hands you to the login screen and leaves the session running.
+
+Power off, restart and log out go through `hyprshutdown`, which closes your
+apps cleanly before Hyprland exits (and runs `systemctl poweroff`/`reboot`
+afterwards). Switch user asks the display manager for its greeter over D-Bus.
 
 ---
 

@@ -15,7 +15,7 @@ window#waybar { background: rgba(20, 22, 30, 0.92); color: #e6e6e6; }
 #workspaces button, #taskbar button { padding: 0 8px; color: #e6e6e6; background: transparent; border-radius: 4px; }
 #workspaces button.active, #taskbar button.active { background: rgba(255, 255, 255, 0.15); }
 #workspaces button:hover, #taskbar button:hover { background: rgba(255, 255, 255, 0.25); }
-#clock, #tray, #pulseaudio, #bluetooth, #network, #battery, #custom-power { padding: 0 10px; }
+#clock, #tray, #pulseaudio, #bluetooth, #network, #battery, #custom-power, #custom-session { padding: 0 10px; }
 #battery.warning { color: #f0c674; }
 #battery.critical { color: #e06c75; }
 
@@ -43,3 +43,7 @@ window#waybar { background: rgba(20, 22, 30, 0.92); color: #e6e6e6; }
 /* Colour widget */
 #custom-theme { color: @accent; }
 #custom-theme:hover { background: @accent_soft; border-radius: 6px; }
+
+/* Session widget (the penguin) */
+#custom-session { color: @accent; font-size: 16px; }
+#custom-session:hover { background: @accent_soft; border-radius: 6px; }
