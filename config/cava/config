@@ -222,13 +222,15 @@ fragment_shader = segmented_bars.frag
 # >>> theme.sh (generated -- restart cava to apply; its r/c reload keys segfault)
 background = '#000000'
 gradient = 1
-gradient_count = 5
-gradient_color_1 = '#5bcefa'
-gradient_color_2 = '#f5a9b8'
-gradient_color_3 = '#ffffff'
-gradient_color_4 = '#f5a9b8'
-gradient_color_5 = '#5bcefa'
+gradient_count = 6
+gradient_color_1 = '#ff3344'
+gradient_color_2 = '#ff8c1a'
+gradient_color_3 = '#ffd633'
+gradient_color_4 = '#00ff41'
+gradient_color_5 = '#33ccff'
+gradient_color_6 = '#a855f7'
 # <<< theme.sh
+
 
 
 

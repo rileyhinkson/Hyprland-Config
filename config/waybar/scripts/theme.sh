@@ -214,7 +214,7 @@ case ${1:-status} in
         apply_entry "$entry"
         ;;
     status)
-        printf '{"text":"●  Color","tooltip":"Accent: %s\\n\\nClick to change the colour","class":"theme"}\n' \
+        printf '{"text":"●","tooltip":"Accent: %s\\n\\nClick to change the colour","class":"theme"}\n' \
             "$(current_name)"
         ;;
     *)

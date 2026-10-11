@@ -1,128 +1,390 @@
-{
-  // Waybar. Styling lives in style.css; the accent colour in the generated
-  // accent.css (see waybar/scripts/theme.sh -- don't hardcode colours here).
-  //
-  // The click targets below are all scripts in
-  // waybar/scripts/. The *-popup.py ones are GTK panels that expand above the
-  // bar; the *.sh ones are rofi menus. Both close themselves on a second click.
-  "layer": "top",
-  "position": "bottom",
-  "height": 34,
-  "spacing": 6,
-  "modules-left": ["custom/session", "hyprland/workspaces", "wlr/taskbar"],
-  "modules-center": ["clock"],
-  "modules-right": ["tray", "custom/theme", "pulseaudio", "bluetooth", "network#wifi", "network", "custom/power"],
-
-  // The penguin: who's logged in, power off / restart / log out / switch user.
-  "custom/session": {
-    "exec": "~/.config/waybar/scripts/session-popup.py status",
-    "return-type": "json",
-    "interval": "once",
-    "format": "<span font_family='FantasqueSansM Nerd Font Propo'>{}</span>",
-    "tooltip": true,
-    "on-click": "~/.config/waybar/scripts/session-popup.py"
-  },
-
-  "hyprland/workspaces": {
-    "on-click": "activate",
-    // Per-monitor workspaces (11-20, 21-30, ...) show as 1-10 on each monitor
-    "format": "{icon}",
-    "format-icons": { "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "1", "12": "2", "13": "3", "14": "4", "15": "5", "16": "6", "17": "7", "18": "8", "19": "9", "20": "10", "21": "1", "22": "2", "23": "3", "24": "4", "25": "5", "26": "6", "27": "7", "28": "8", "29": "9", "30": "10" }
-  },
-
-  "wlr/taskbar": {
-    "format": "{icon}",
-    "icon-size": 18,
-    "tooltip-format": "{title}",
-    "on-click": "activate",
-    "on-click-middle": "close",
-    "on-click-right": "minimize-raise"
-  },
-
-  "clock": {
-    "format": "{:%a %d %b  %H:%M}",
-    "tooltip-format": "<tt>{calendar}</tt>"
-  },
-  "tray": { "spacing": 8 },
-  // Volume. Click opens the audio panel (outputs, inputs, vertical slider).
-  "pulseaudio": {
-    "format": "<span font_family='FantasqueSansM Nerd Font Propo'>{icon}</span>  VOL {volume}%",
-    "format-muted": "<span font_family='FantasqueSansM Nerd Font Propo'>󰖁</span>  MUTED",
-    "format-icons": {
-      "headphone": "󰋋",
-      "headset": "󰋎",
-      "hands-free": "󰋎",
-      "hdmi": "󰍹",
-      "portable": "󰓃",
-      "car": "󰄋",
-      "default": ["󰕿", "󰖀", "󰕾"]
+// Waybar, two bars from one file.
+//
+//   [0] the wide bar  -- DP-1 (desktop main) and eDP-1 (laptop panel).
+//       Icons with their text labels.
+//       Outputs are listed by name because waybar ignores "!" exclusions:
+//       ["*", "!HDMI-A-1"] still draws on HDMI-A-1. So if a new machine
+//       shows no bar at all, add its output name here.
+//   [1] the narrow bar -- the two portrait monitors (1080px wide). Same
+//       modules, but every status module is reduced to its icon: with text
+//       they overflow past the centre of such a narrow bar.
+//
+// The two are written out in full rather than sharing an include, because
+// waybar's include merge replaces a module wholesale -- you cannot override
+// just one "format" key from an included file. If you change a module, change
+// it in BOTH bars.
+//
+// Styling: style.css. Accent colour: the generated accent.css (see
+// waybar/scripts/theme.sh); never hardcode colours here.
+[
+  {
+    "layer": "top",
+    "position": "bottom",
+    "height": 34,
+    "spacing": 6,
+    "modules-left": [
+      "custom/session",
+      "hyprland/workspaces",
+      "wlr/taskbar"
+    ],
+    "modules-center": [
+      "clock"
+    ],
+    "modules-right": [
+      "tray",
+      "custom/notification",
+      "custom/theme",
+      "pulseaudio",
+      "bluetooth",
+      "network#wifi",
+      "network",
+      "custom/power"
+    ],
+    "custom/session": {
+      "exec": "~/.config/waybar/scripts/session-popup.py status",
+      "return-type": "json",
+      "interval": "once",
+      "format": "<span font_family='FantasqueSansM Nerd Font Propo'>{}</span>",
+      "tooltip": true,
+      "on-click": "~/.config/waybar/scripts/session-popup.py"
     },
-    "scroll-step": 5,
-    "max-volume": 100,
-    "tooltip-format": "{desc}  {volume}%\n\nClick: audio panel · Middle: mute · Scroll: volume",
-    "on-click": "~/.config/waybar/scripts/audio-popup.py",
-    "on-click-middle": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    "hyprland/workspaces": {
+      "on-click": "activate",
+      "format": "{icon}",
+      "format-icons": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8",
+        "9": "9",
+        "10": "10",
+        "11": "1",
+        "12": "2",
+        "13": "3",
+        "14": "4",
+        "15": "5",
+        "16": "6",
+        "17": "7",
+        "18": "8",
+        "19": "9",
+        "20": "10",
+        "21": "1",
+        "22": "2",
+        "23": "3",
+        "24": "4",
+        "25": "5",
+        "26": "6",
+        "27": "7",
+        "28": "8",
+        "29": "9",
+        "30": "10"
+      }
+    },
+    "wlr/taskbar": {
+      "format": "{icon}",
+      "icon-size": 18,
+      "tooltip-format": "{title}",
+      "on-click": "activate",
+      "on-click-middle": "close",
+      "on-click-right": "minimize-raise"
+    },
+    "clock": {
+      "format": "{:%a %d %b  %H:%M}",
+      "tooltip-format": "<tt>{calendar}</tt>"
+    },
+    "tray": {
+      "spacing": 8
+    },
+    "pulseaudio": {
+      "format": "<span font_family='FantasqueSansM Nerd Font Propo'>{icon}</span>  VOL {volume}%",
+      "format-muted": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb81\udd81</span>  MUTED",
+      "format-icons": {
+        "headphone": "\udb80\udecb",
+        "headset": "\udb80\udece",
+        "hands-free": "\udb80\udece",
+        "hdmi": "\udb80\udf79",
+        "portable": "\udb81\udcc3",
+        "car": "\udb80\udd0b",
+        "default": [
+          "\udb81\udd7f",
+          "\udb81\udd80",
+          "\udb81\udd7e"
+        ]
+      },
+      "scroll-step": 5,
+      "max-volume": 100,
+      "tooltip-format": "{desc}  {volume}%\n\nClick: audio panel \u00b7 Middle: mute \u00b7 Scroll: volume",
+      "on-click": "~/.config/waybar/scripts/audio-popup.py",
+      "on-click-middle": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    },
+    "bluetooth": {
+      "format": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb80\udcaf</span>  BT",
+      "format-off": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb80\udcb2</span>  BT OFF",
+      "format-disabled": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb80\udcb2</span>  BT OFF",
+      "format-connected": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb80\udcb1</span>  {device_alias}",
+      "tooltip-format": "{controller_alias}\n\nClick: devices \u00b7 Middle: toggle \u00b7 Right: settings",
+      "tooltip-format-connected": "{controller_alias}\n{num_connections} connected\n{device_enumerate}\n\nClick: devices \u00b7 Middle: toggle \u00b7 Right: settings",
+      "tooltip-format-enumerate-connected": "{device_alias}",
+      "on-click": "~/.config/waybar/scripts/bt-popup.py",
+      "on-click-middle": "~/.config/waybar/scripts/bt-menu.sh toggle",
+      "on-click-right": "blueman-manager"
+    },
+    "network": {
+      "interface": "en*",
+      "interval": 5,
+      "format-ethernet": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb80\ude00</span>  ETH",
+      "format-linked": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb80\ude00</span>  No IP",
+      "format-disconnected": "",
+      "tooltip-format-ethernet": "{ifname}  {ipaddr}/{cidr}\n\u21e3 {bandwidthDownBytes}   \u21e1 {bandwidthUpBytes}",
+      "on-click-right": "nm-connection-editor"
+    },
+    "network#wifi": {
+      "interface": "wl*",
+      "interval": 5,
+      "format-wifi": "<span font_family='FantasqueSansM Nerd Font Propo'>{icon}</span>  {essid}",
+      "format-disconnected": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb82\udd2e</span>  OFFLINE",
+      "format-disabled": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb82\udd2d</span>  WIFI OFF",
+      "format-icons": [
+        "\udb82\udd1f",
+        "\udb82\udd22",
+        "\udb82\udd25",
+        "\udb82\udd28"
+      ],
+      "tooltip-format-wifi": "{essid}  {signalStrength}%  {frequency} GHz\n{ipaddr}/{cidr} via {gwaddr}\n\u21e3 {bandwidthDownBytes}   \u21e1 {bandwidthUpBytes}\n\nClick: networks \u00b7 Middle: toggle Wi-Fi \u00b7 Right: settings",
+      "tooltip-format-disconnected": "Not connected\n\nClick to pick a network",
+      "on-click": "~/.config/waybar/scripts/wifi-popup.py",
+      "on-click-middle": "~/.config/waybar/scripts/wifi-menu.sh toggle",
+      "on-click-right": "nm-connection-editor"
+    },
+    "custom/notification": {
+      "exec": "swaync-client -swb",
+      "return-type": "json",
+      "format": "<span font_family='FantasqueSansM Nerd Font Propo'>{icon}</span> {}",
+      "format-icons": {
+        "notification": "\udb80\udf61",
+        "none": "\udb80\udf61",
+        "dnd-notification": "\uf1f6",
+        "dnd-none": "\uf1f6",
+        "inhibited-notification": "\udb80\udf61",
+        "inhibited-none": "\udb80\udf61",
+        "dnd-inhibited-notification": "\uf1f6",
+        "dnd-inhibited-none": "\uf1f6"
+      },
+      "tooltip": true,
+      "on-click": "swaync-client -t -sw",
+      "on-click-right": "swaync-client -d -sw"
+    },
+    "custom/theme": {
+      "exec": "~/.config/waybar/scripts/theme.sh status",
+      "return-type": "json",
+      "interval": "once",
+      "format": "{}  Color",
+      "tooltip": true,
+      "on-click": "~/.config/waybar/scripts/theme-popup.py"
+    },
+    "custom/power": {
+      "exec": "~/.config/waybar/scripts/power.sh status",
+      "return-type": "json",
+      "interval": 15,
+      "signal": 8,
+      "format": "{}",
+      "tooltip": true,
+      "on-click": "~/.config/waybar/scripts/power.sh menu",
+      "on-click-middle": "~/.config/waybar/scripts/power.sh cycle",
+      "on-click-right": "wlogout"
+    },
+    "output": [
+      "DP-1",
+      "eDP-1"
+    ]
   },
-  // Bluetooth. Click opens the device panel; bt-menu.sh still owns the
-  // middle-click radio toggle.
-  "bluetooth": {
-    "format": "<span font_family='FantasqueSansM Nerd Font Propo'>󰂯</span>  BT",
-    "format-off": "<span font_family='FantasqueSansM Nerd Font Propo'>󰂲</span>  BT OFF",
-    "format-disabled": "<span font_family='FantasqueSansM Nerd Font Propo'>󰂲</span>  BT OFF",
-    "format-connected": "<span font_family='FantasqueSansM Nerd Font Propo'>󰂱</span>  {device_alias}",
-    "tooltip-format": "{controller_alias}\n\nClick: devices · Middle: toggle · Right: settings",
-    "tooltip-format-connected": "{controller_alias}\n{num_connections} connected\n{device_enumerate}\n\nClick: devices · Middle: toggle · Right: settings",
-    "tooltip-format-enumerate-connected": "{device_alias}",
-    "on-click": "~/.config/waybar/scripts/bt-popup.py",
-    "on-click-middle": "~/.config/waybar/scripts/bt-menu.sh toggle",
-    "on-click-right": "blueman-manager"
-  },
-  // Ethernet only -- collapses to nothing on machines with no cable (the laptop).
-  "network": {
-    "interface": "en*",
-    "interval": 5,
-    "format-ethernet": "<span font_family='FantasqueSansM Nerd Font Propo'>󰈀</span>  ETH",
-    "format-linked": "<span font_family='FantasqueSansM Nerd Font Propo'>󰈀</span>  No IP",
-    "format-disconnected": "",
-    "tooltip-format-ethernet": "{ifname}  {ipaddr}/{cidr}\n⇣ {bandwidthDownBytes}   ⇡ {bandwidthUpBytes}",
-    "on-click-right": "nm-connection-editor"
-  },
-
-  // Wi-Fi, with the network panel hanging off it.
-  "network#wifi": {
-    "interface": "wl*",
-    "interval": 5,
-    "format-wifi": "<span font_family='FantasqueSansM Nerd Font Propo'>{icon}</span>  {essid}",
-    "format-disconnected": "<span font_family='FantasqueSansM Nerd Font Propo'>󰤮</span>  OFFLINE",
-    "format-disabled": "<span font_family='FantasqueSansM Nerd Font Propo'>󰤭</span>  WIFI OFF",
-    "format-icons": ["󰤟", "󰤢", "󰤥", "󰤨"],
-    "tooltip-format-wifi": "{essid}  {signalStrength}%  {frequency} GHz\n{ipaddr}/{cidr} via {gwaddr}\n⇣ {bandwidthDownBytes}   ⇡ {bandwidthUpBytes}\n\nClick: networks · Middle: toggle Wi-Fi · Right: settings",
-    "tooltip-format-disconnected": "Not connected\n\nClick to pick a network",
-    "on-click": "~/.config/waybar/scripts/wifi-popup.py",
-    "on-click-middle": "~/.config/waybar/scripts/wifi-menu.sh toggle",
-    "on-click-right": "nm-connection-editor"
-  },
-  // Accent colour picker. theme.sh owns the palette and the file rewriting.
-  "custom/theme": {
-    "exec": "~/.config/waybar/scripts/theme.sh status",
-    "return-type": "json",
-    "interval": "once",
-    "format": "{}",
-    "tooltip": true,
-    "on-click": "~/.config/waybar/scripts/theme-popup.py"
-  },
-
-  // Power. Prints nothing on machines with no system battery, which hides
-  // the module entirely -- that is intended, not a broken script.
-  "custom/power": {
-    "exec": "~/.config/waybar/scripts/power.sh status",
-    "return-type": "json",
-    "interval": 15,
-    "signal": 8,
-    "format": "{}",
-    "tooltip": true,
-    "on-click": "~/.config/waybar/scripts/power.sh menu",
-    "on-click-middle": "~/.config/waybar/scripts/power.sh cycle",
-    "on-click-right": "wlogout"
+  {
+    "layer": "top",
+    "position": "bottom",
+    "height": 34,
+    "spacing": 4,
+    "modules-left": [
+      "custom/session",
+      "hyprland/workspaces",
+      "wlr/taskbar"
+    ],
+    "modules-center": [
+      "clock"
+    ],
+    "modules-right": [
+      "tray",
+      "custom/notification",
+      "custom/theme",
+      "pulseaudio",
+      "bluetooth",
+      "network#wifi",
+      "network",
+      "custom/power"
+    ],
+    "custom/session": {
+      "exec": "~/.config/waybar/scripts/session-popup.py status",
+      "return-type": "json",
+      "interval": "once",
+      "format": "<span font_family='FantasqueSansM Nerd Font Propo'>{}</span>",
+      "tooltip": true,
+      "on-click": "~/.config/waybar/scripts/session-popup.py"
+    },
+    "hyprland/workspaces": {
+      "on-click": "activate",
+      "format": "{icon}",
+      "format-icons": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8",
+        "9": "9",
+        "10": "10",
+        "11": "1",
+        "12": "2",
+        "13": "3",
+        "14": "4",
+        "15": "5",
+        "16": "6",
+        "17": "7",
+        "18": "8",
+        "19": "9",
+        "20": "10",
+        "21": "1",
+        "22": "2",
+        "23": "3",
+        "24": "4",
+        "25": "5",
+        "26": "6",
+        "27": "7",
+        "28": "8",
+        "29": "9",
+        "30": "10"
+      }
+    },
+    "wlr/taskbar": {
+      "format": "{icon}",
+      "icon-size": 16,
+      "tooltip-format": "{title}",
+      "on-click": "activate",
+      "on-click-middle": "close",
+      "on-click-right": "minimize-raise"
+    },
+    "clock": {
+      "format": "{:%H:%M}",
+      "tooltip-format": "<tt>{calendar}</tt>"
+    },
+    "tray": {
+      "spacing": 8
+    },
+    "pulseaudio": {
+      "format": "<span font_family='FantasqueSansM Nerd Font Propo'>{icon}</span>",
+      "format-muted": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb81\udd81</span>",
+      "format-icons": {
+        "headphone": "\udb80\udecb",
+        "headset": "\udb80\udece",
+        "hands-free": "\udb80\udece",
+        "hdmi": "\udb80\udf79",
+        "portable": "\udb81\udcc3",
+        "car": "\udb80\udd0b",
+        "default": [
+          "\udb81\udd7f",
+          "\udb81\udd80",
+          "\udb81\udd7e"
+        ]
+      },
+      "scroll-step": 5,
+      "max-volume": 100,
+      "tooltip-format": "{desc}  {volume}%\n\nClick: audio panel \u00b7 Middle: mute \u00b7 Scroll: volume",
+      "on-click": "~/.config/waybar/scripts/audio-popup.py",
+      "on-click-middle": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    },
+    "bluetooth": {
+      "format": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb80\udcaf</span>",
+      "format-off": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb80\udcb2</span>",
+      "format-disabled": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb80\udcb2</span>",
+      "format-connected": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb80\udcb1</span>",
+      "tooltip-format": "{controller_alias}\n\nClick: devices \u00b7 Middle: toggle \u00b7 Right: settings",
+      "tooltip-format-connected": "{controller_alias}\n{num_connections} connected\n{device_enumerate}\n\nClick: devices \u00b7 Middle: toggle \u00b7 Right: settings",
+      "tooltip-format-enumerate-connected": "{device_alias}",
+      "on-click": "~/.config/waybar/scripts/bt-popup.py",
+      "on-click-middle": "~/.config/waybar/scripts/bt-menu.sh toggle",
+      "on-click-right": "blueman-manager"
+    },
+    "network": {
+      "interface": "en*",
+      "interval": 5,
+      "format-ethernet": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb80\ude00</span>",
+      "format-linked": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb80\ude00</span>",
+      "format-disconnected": "",
+      "tooltip-format-ethernet": "{ifname}  {ipaddr}/{cidr}\n\u21e3 {bandwidthDownBytes}   \u21e1 {bandwidthUpBytes}",
+      "on-click-right": "nm-connection-editor"
+    },
+    "network#wifi": {
+      "interface": "wl*",
+      "interval": 5,
+      "format-wifi": "<span font_family='FantasqueSansM Nerd Font Propo'>{icon}</span>",
+      "format-disconnected": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb82\udd2e</span>",
+      "format-disabled": "<span font_family='FantasqueSansM Nerd Font Propo'>\udb82\udd2d</span>",
+      "format-icons": [
+        "\udb82\udd1f",
+        "\udb82\udd22",
+        "\udb82\udd25",
+        "\udb82\udd28"
+      ],
+      "tooltip-format-wifi": "{essid}  {signalStrength}%  {frequency} GHz\n{ipaddr}/{cidr} via {gwaddr}\n\u21e3 {bandwidthDownBytes}   \u21e1 {bandwidthUpBytes}\n\nClick: networks \u00b7 Middle: toggle Wi-Fi \u00b7 Right: settings",
+      "tooltip-format-disconnected": "Not connected\n\nClick to pick a network",
+      "on-click": "~/.config/waybar/scripts/wifi-popup.py",
+      "on-click-middle": "~/.config/waybar/scripts/wifi-menu.sh toggle",
+      "on-click-right": "nm-connection-editor"
+    },
+    "custom/notification": {
+      "exec": "swaync-client -swb",
+      "return-type": "json",
+      "format": "<span font_family='FantasqueSansM Nerd Font Propo'>{icon}</span>{}",
+      "format-icons": {
+        "notification": "\udb80\udf61",
+        "none": "\udb80\udf61",
+        "dnd-notification": "\uf1f6",
+        "dnd-none": "\uf1f6",
+        "inhibited-notification": "\udb80\udf61",
+        "inhibited-none": "\udb80\udf61",
+        "dnd-inhibited-notification": "\uf1f6",
+        "dnd-inhibited-none": "\uf1f6"
+      },
+      "tooltip": true,
+      "on-click": "swaync-client -t -sw",
+      "on-click-right": "swaync-client -d -sw"
+    },
+    "custom/theme": {
+      "exec": "~/.config/waybar/scripts/theme.sh status",
+      "return-type": "json",
+      "interval": "once",
+      "format": "{}",
+      "tooltip": true,
+      "on-click": "~/.config/waybar/scripts/theme-popup.py"
+    },
+    "custom/power": {
+      "exec": "~/.config/waybar/scripts/power.sh status",
+      "return-type": "json",
+      "interval": 15,
+      "signal": 8,
+      "format": "{}",
+      "tooltip": true,
+      "on-click": "~/.config/waybar/scripts/power.sh menu",
+      "on-click-middle": "~/.config/waybar/scripts/power.sh cycle",
+      "on-click-right": "wlogout"
+    },
+    "output": [
+      "HDMI-A-1",
+      "HDMI-A-2"
+    ]
   }
-}
+]
