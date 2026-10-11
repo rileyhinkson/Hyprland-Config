@@ -1,3 +1,14 @@
+/* Wi-Fi menu (wifi-menu.sh)
+ *
+ * Accent colours are NOT set here. theme.sh generates accent.rasi from the
+ * palette chosen with the waybar Color widget, and this imports it:
+ *   @accent   window border
+ *   @accent2  prompt
+ *   @accent3  selected row
+ * On single-colour themes all three are the same hex. On the gradient themes
+ * (rainbow, trans) they are different stops, because rasi cannot draw a
+ * gradient -- spreading the stops is as close as rofi gets to the flag.
+ */
 @import "accent.rasi"
 
 * {

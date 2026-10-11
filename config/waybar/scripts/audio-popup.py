@@ -5,6 +5,19 @@ A layer-shell popup that sits above the bar: pick an output or input on the
 left, set the volume with the vertical slider on the right. Clicking the
 waybar module again, pressing Escape, or clicking away closes it.
 """
+
+# ---------------------------------------------------------------------------
+# Shared scaffolding note: ClickCatcher, theme_colours/themed_css and
+# the pidfile dance below are duplicated verbatim across audio-popup.py,
+# wifi-popup.py, bt-popup.py and theme-popup.py. They are kept in lockstep on
+# purpose -- if you fix a dismissal or theming bug here, fix it in the others
+# too, or the panels start behaving differently from each other.
+#
+# Colours come from ~/.config/theme/accent, written by waybar/scripts/theme.sh.
+# Never hardcode an accent in these files; use the @ACCENT@ / @BORDER@ / @ROW@
+# placeholders in CSS so the Color widget keeps working.
+# ---------------------------------------------------------------------------
+
 import json
 import os
 import re

@@ -1,4 +1,10 @@
 {
+  // Waybar. Styling lives in style.css; the accent colour in the generated
+  // accent.css (see waybar/scripts/theme.sh -- don't hardcode colours here).
+  //
+  // The click targets below are all scripts in
+  // waybar/scripts/. The *-popup.py ones are GTK panels that expand above the
+  // bar; the *.sh ones are rofi menus. Both close themselves on a second click.
   "layer": "top",
   "position": "bottom",
   "height": 34,
@@ -28,6 +34,7 @@
     "tooltip-format": "<tt>{calendar}</tt>"
   },
   "tray": { "spacing": 8 },
+  // Volume. Click opens the audio panel (outputs, inputs, vertical slider).
   "pulseaudio": {
     "format": "<span font_family='FantasqueSansM Nerd Font Propo'>{icon}</span>  VOL {volume}%",
     "format-muted": "<span font_family='FantasqueSansM Nerd Font Propo'>󰖁</span>  MUTED",
@@ -46,6 +53,8 @@
     "on-click": "~/.config/waybar/scripts/audio-popup.py",
     "on-click-middle": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
   },
+  // Bluetooth. Click opens the device panel; bt-menu.sh still owns the
+  // middle-click radio toggle.
   "bluetooth": {
     "format": "<span font_family='FantasqueSansM Nerd Font Propo'>󰂯</span>  BT",
     "format-off": "<span font_family='FantasqueSansM Nerd Font Propo'>󰂲</span>  BT OFF",
@@ -93,6 +102,8 @@
     "on-click": "~/.config/waybar/scripts/theme-popup.py"
   },
 
+  // Power. Prints nothing on machines with no system battery, which hides
+  // the module entirely -- that is intended, not a broken script.
   "custom/power": {
     "exec": "~/.config/waybar/scripts/power.sh status",
     "return-type": "json",

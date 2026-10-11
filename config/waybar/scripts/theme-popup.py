@@ -4,6 +4,19 @@
 Black stays the base everywhere; this swaps the secondary colour. The palette
 and all the file rewriting live in theme.sh -- this is only the swatch grid.
 """
+
+# ---------------------------------------------------------------------------
+# Shared scaffolding note: ClickCatcher, theme_colours/themed_css and
+# the pidfile dance below are duplicated verbatim across audio-popup.py,
+# wifi-popup.py, bt-popup.py and theme-popup.py. They are kept in lockstep on
+# purpose -- if you fix a dismissal or theming bug here, fix it in the others
+# too, or the panels start behaving differently from each other.
+#
+# Colours come from ~/.config/theme/accent, written by waybar/scripts/theme.sh.
+# Never hardcode an accent in these files; use the @ACCENT@ / @BORDER@ / @ROW@
+# placeholders in CSS so the Color widget keeps working.
+# ---------------------------------------------------------------------------
+
 import os
 import signal
 import subprocess
