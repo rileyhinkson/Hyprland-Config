@@ -236,11 +236,12 @@ hl.config({
 
 hl.config({
     misc = {
-        force_default_wallpaper = 0,     -- Set to 0 or 1 to disable the anime mascot wallpapers
-        disable_hyprland_logo   = true,  -- No random hyprland logo / anime background
-        focus_on_activate       = true,  -- Focus windows that ask for attention (e.g. a link opening the browser)
-        mouse_move_enables_dpms = true,  -- Wake screens on mouse move
-        key_press_enables_dpms  = true,  -- Wake screens on key press
+        force_default_wallpaper   = 0,     -- Set to 0 or 1 to disable the anime mascot wallpapers
+        disable_hyprland_logo     = true,  -- No random hyprland logo / anime background
+        focus_on_activate         = true,  -- Focus windows that ask for attention (e.g. a link opening the browser)
+        mouse_move_enables_dpms   = true,  -- Wake screens on mouse move
+        key_press_enables_dpms    = true,  -- Wake screens on key press
+        on_focus_under_fullscreen = 1,     -- Alt-Tab pulls the new window over a fullscreen one (2, the default, leaves it behind)
     },
 })
 
@@ -462,7 +463,17 @@ hl.window_rule({
     center = true,
 })
 
--- QoL: float file pickers and other common dialogs
+-- QoL: float anything the app marks as a modal dialog, whatever it calls itself
+hl.window_rule({
+    name  = "float-modals",
+    match = { modal = true },
+    float  = true,
+    center = true,
+})
+
+-- QoL: float file pickers and other common dialogs.
+-- Still needed alongside float-modals: portal file choosers are separate
+-- top-levels and aren't flagged modal.
 hl.window_rule({
     name  = "float-dialogs",
     match = { title = "^(Open File|Open Files|Save As|Save File|Select a File|Choose Files|File Upload|Open Folder|File Operation Progress).*$" },
