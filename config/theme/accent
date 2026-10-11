@@ -1,0 +1,5 @@
+# Written by theme.sh -- use the waybar Color widget to change it.
+name=trans
+accent=#5bcefa
+accent_dark=#285c70
+gradient=#5bcefa #f5a9b8 #ffffff #f5a9b8 #5bcefa

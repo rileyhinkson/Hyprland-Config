@@ -25,7 +25,6 @@ BAR_HEIGHT = 34          # "height" in config.jsonc
 GAP = 12                 # same offsets the rofi menus use
 SLIDER_HEIGHT = 190
 POLL_MS = 500            # catch volume changes made elsewhere (media keys)
-LEAVE_MS = 400           # grace period after the pointer leaves the panel
 _RUN = os.environ.get("XDG_RUNTIME_DIR", "/tmp")
 STATE = os.path.join(_RUN, "waybar-audio-popup.closed")
 PIDFILE = os.path.join(_RUN, "waybar-audio-popup.pid")
@@ -40,10 +39,15 @@ VOL_OFF = "\U000F0581"
 
 CSS = b"""
 window { background-color: transparent; }
+.catcher { background-color: rgba(0, 0, 0, 0.01); }
+#frame {
+    background-image: @BORDER@;
+    border-radius: 10px;
+    padding: 2px;
+}
 #root {
     background-color: #161616;
-    border: 2px solid #33ccff;
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 12px;
 }
 * {
@@ -61,8 +65,10 @@ button {
     border-radius: 8px;
     padding: 7px 10px;
 }
-button:hover { background-color: rgba(51, 204, 255, 0.25); }
-button.active { background-color: #33ccff; color: #101010; }
+button:hover { background-color: @ACCENT_HOVER@; }
+button.active { background-image: @ROW@; color: #101010; }
+/* the dim tags sit on the accent here, so they need the dark ink too */
+button.active label { color: #101010; }
 button.step { padding: 2px 10px; }
 scale { margin: 0; }
 scale trough {
@@ -70,7 +76,7 @@ scale trough {
     background-color: #2a2a2a;
     border-radius: 5px;
 }
-scale highlight { background-color: #33ccff; border-radius: 5px; }
+scale highlight { background-image: @ROW@; border-radius: 5px; }
 scale slider {
     min-width: 14px;
     min-height: 14px;
@@ -153,14 +159,105 @@ def is_muted():
     return pactl("get-sink-mute", "@DEFAULT_SINK@").endswith("yes")
 
 
+def theme_colours():
+    """(primary, stops) as chosen with the Color widget; stops may be empty."""
+    primary, stops = "#ff3344", []
+    try:
+        with open(os.path.expanduser("~/.config/theme/accent")) as fh:
+            for line in fh:
+                key, _, value = line.partition("=")
+                value = value.strip()
+                if key == "accent" and value:
+                    primary = value
+                elif key == "gradient" and value:
+                    stops = value.split()
+    except OSError:
+        pass
+    return primary, stops
+
+
+def themed_css():
+    """Fill the palette holes in CSS.
+
+    Multi-colour themes (rainbow, trans) paint the frame and the selected rows
+    with the real gradient; single colours become a flat one-stop gradient so
+    the same rules work for both.
+    """
+    primary, stops = theme_colours()
+    r, g, b = (int(primary[i:i + 2], 16) for i in (1, 3, 5))
+    if stops:
+        border = "linear-gradient(135deg, %s)" % ", ".join(stops)
+        row = "linear-gradient(90deg, %s)" % ", ".join(stops)
+    else:
+        border = row = "linear-gradient(0deg, %s, %s)" % (primary, primary)
+    return (CSS.replace(b"@BORDER@", border.encode())
+               .replace(b"@ROW@", row.encode())
+               .replace(b"@ACCENT@", primary.encode())
+               .replace(b"@ACCENT_HOVER@", ("rgba(%d, %d, %d, 0.25)" % (r, g, b)).encode()))
+
+
+class ClickCatcher:
+    """Invisible layers that make a click outside the panel dismiss it.
+
+    One surface per monitor: a layer surface only covers the output it is
+    assigned to, so a single one would leave clicks on the other screens doing
+    nothing. Each stops short of the bar, which keeps the widget itself
+    clickable -- clicking it again re-runs the script, and that closes the
+    panel through its pidfile.
+    """
+
+    def __init__(self, on_click):
+        self.windows = []
+        display = Gdk.Display.get_default()
+        for i in range(display.get_n_monitors()):
+            self.windows.append(self._surface(display.get_monitor(i), on_click))
+
+    def _surface(self, monitor, on_click):
+        win = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
+        win.set_app_paintable(True)
+        visual = Gdk.Screen.get_default().get_rgba_visual()
+        if visual:
+            win.set_visual(visual)
+        GtkLayerShell.init_for_window(win)
+        GtkLayerShell.set_monitor(win, monitor)
+        GtkLayerShell.set_layer(win, GtkLayerShell.Layer.TOP)
+        for edge in (GtkLayerShell.Edge.TOP, GtkLayerShell.Edge.BOTTOM,
+                     GtkLayerShell.Edge.LEFT, GtkLayerShell.Edge.RIGHT):
+            GtkLayerShell.set_anchor(win, edge, True)
+        GtkLayerShell.set_margin(win, GtkLayerShell.Edge.BOTTOM, BAR_HEIGHT)
+        GtkLayerShell.set_keyboard_mode(win, GtkLayerShell.KeyboardMode.NONE)
+        GtkLayerShell.set_exclusive_zone(win, -1)
+        # An empty window has nothing to click on; an event box with a barely
+        # visible background gives the surface a real input region.
+        box = Gtk.EventBox()
+        box.set_visible_window(True)
+        box.get_style_context().add_class("catcher")
+        box.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        box.connect("button-press-event", self.on_press, on_click)
+        win.add(box)
+        return win
+
+    def on_press(self, _widget, _event, on_click):
+        on_click()
+        return True
+
+    def show(self):
+        for win in self.windows:
+            win.show_all()
+
+    def destroy(self):
+        for win in self.windows:
+            win.destroy()
+        self.windows = []
+
+
 class Panel(Gtk.Window):
     def __init__(self):
         super().__init__(type=Gtk.WindowType.TOPLEVEL)
+        self.catcher = None
         self.syncing = False
         self.dragging = False
         self.last_set = None
-        self.entered = False
-        self.leave_timer = None
 
         self.set_app_paintable(True)
         visual = Gdk.Screen.get_default().get_rgba_visual()
@@ -173,22 +270,21 @@ class Panel(Gtk.Window):
         GtkLayerShell.set_anchor(self, GtkLayerShell.Edge.RIGHT, True)
         GtkLayerShell.set_margin(self, GtkLayerShell.Edge.BOTTOM, BAR_HEIGHT + GAP)
         GtkLayerShell.set_margin(self, GtkLayerShell.Edge.RIGHT, GAP)
-        GtkLayerShell.set_keyboard_mode(self, GtkLayerShell.KeyboardMode.ON_DEMAND)
+        GtkLayerShell.set_keyboard_mode(self, GtkLayerShell.KeyboardMode.EXCLUSIVE)
 
         root = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
         root.set_name("root")
-        self.add(root)
+        frame = Gtk.Box()
+        frame.set_name("frame")
+        frame.add(root)
+        self.add(frame)
 
         self.lists = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.lists.set_size_request(300, -1)
         root.pack_start(self.lists, True, True, 0)
         root.pack_start(self.volume_column(), False, False, 0)
 
-        self.add_events(Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
         self.connect("key-press-event", self.on_key)
-        self.connect("enter-notify-event", self.on_enter)
-        self.connect("leave-notify-event", self.on_leave)
-        self.connect("focus-out-event", self.on_focus_out)
         self.connect("destroy", Gtk.main_quit)
 
         self.build_lists()
@@ -295,40 +391,9 @@ class Panel(Gtk.Window):
         return True
 
     # ---------- closing ----------
+    # Escape, or a click anywhere outside the panel (see ClickCatcher).
     def on_key(self, _w, event):
         if event.keyval == Gdk.KEY_Escape:
-            self.close_panel()
-        return False
-
-    def on_enter(self, _w, event):
-        if event.detail == Gdk.NotifyType.INFERIOR:   # just crossed onto a child widget
-            return False
-        self.entered = True
-        self.cancel_leave()
-        return False
-
-    def on_leave(self, _w, event):
-        if event.detail == Gdk.NotifyType.INFERIOR:
-            return False
-        self.cancel_leave()
-        self.leave_timer = GLib.timeout_add(LEAVE_MS, self.on_leave_elapsed)
-        return False
-
-    def on_leave_elapsed(self):
-        self.leave_timer = None
-        self.close_panel()
-        return False
-
-    def cancel_leave(self):
-        if self.leave_timer:
-            GLib.source_remove(self.leave_timer)
-            self.leave_timer = None
-
-    def on_focus_out(self, *_):
-        # follow_mouse=1 hands focus to whatever window the pointer crosses, so
-        # losing focus on the way here is not a dismissal. Only treat it as one
-        # once the pointer has actually reached the panel.
-        if self.entered:
             self.close_panel()
         return False
 
@@ -337,7 +402,9 @@ class Panel(Gtk.Window):
             open(STATE, "w").close()   # mtime tells the next launch we just closed
         except OSError:
             pass
-        Gtk.main_quit()
+        if self.catcher:
+            self.catcher.destroy()
+            Gtk.main_quit()
 
 
 def open_instance():
@@ -383,12 +450,14 @@ def main():
         pass
 
     provider = Gtk.CssProvider()
-    provider.load_from_data(CSS)
+    provider.load_from_data(themed_css())
     Gtk.StyleContext.add_provider_for_screen(
         Gdk.Screen.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
     win = Panel()
     win.show_all()
+    win.catcher = ClickCatcher(win.close_panel)
+    win.catcher.show()
     try:
         with open(PIDFILE, "w") as fh:
             fh.write(str(os.getpid()))

@@ -25,4 +25,7 @@ for dir in "$REPO"/config/*/; do
 done
 link "$REPO/wallpapers" "$HOME/Pictures/Wallpapers"
 
+# Segmented cava visualiser, so it runs as just `cava-bars`
+link "$REPO/config/cava/cava-bars" "$HOME/.local/bin/cava-bars"
+
 echo "Done. Add config/hypr/hosts/$(cat /proc/sys/kernel/hostname).lua for this machine's monitors, then: hyprctl reload"

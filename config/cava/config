@@ -126,6 +126,13 @@
 
 [output]
 
+# Segmented LED-style bars need the OpenGL renderer; this opens cava in its
+# own SDL window instead of drawing in the terminal. Set method back to
+# noncurses to return to the in-terminal bars.
+method = noncurses
+vertex_shader = pass_through.vert
+fragment_shader = segmented_bars.frag
+
 # Output method. Can be 'ncurses', 'noncurses', 'raw', 'noritake', 'sdl'
 # or 'sdl_glsl'.
 # 'noncurses' (default) uses a buffer and cursor movements to only print
@@ -211,6 +218,35 @@
 ; waveform = 0
 
 [color]
+
+# >>> theme.sh (generated -- restart cava to apply; its r/c reload keys segfault)
+background = '#000000'
+gradient = 1
+gradient_count = 5
+gradient_color_1 = '#5bcefa'
+gradient_color_2 = '#f5a9b8'
+gradient_color_3 = '#ffffff'
+gradient_color_4 = '#f5a9b8'
+gradient_color_5 = '#5bcefa'
+# <<< theme.sh
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Colors can be one of seven predefined: black, blue, cyan, green, magenta, red, white, yellow.
 # Or defined by hex code '#xxxxxx' (hex code must be within ''). User defined colors requires

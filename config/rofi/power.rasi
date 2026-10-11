@@ -1,10 +1,11 @@
+@import "accent.rasi"
+
 * {
     font: "JetBrainsMono Nerd Font 11";
     bg: #161616fa;
     bg-alt: #2a2a2a;
     fg: #e6e6e6;
     dim: #8a8a8a;
-    accent: #33ccff;
     background-color: transparent;
     text-color: @fg;
 }
@@ -21,11 +22,11 @@ window {
 }
 mainbox { padding: 10px; spacing: 8px; children: [ inputbar, message, listview ]; }
 inputbar { padding: 8px 10px; background-color: @bg-alt; border-radius: 8px; children: [ prompt, entry ]; spacing: 8px; }
-prompt { text-color: @accent; }
+prompt { text-color: @accent2; }
 entry { placeholder: "Search"; placeholder-color: @dim; }
 message { padding: 6px 10px; background-color: @bg-alt; border-radius: 8px; }
 textbox { text-color: @dim; }
 listview { lines: 10; scrollbar: false; spacing: 2px; fixed-height: false; }
 element { padding: 7px 10px; border-radius: 8px; }
-element selected { background-color: @accent; text-color: #101010; }
+element selected { background-color: @accent3; text-color: #101010; }
 element-text { text-color: inherit; }

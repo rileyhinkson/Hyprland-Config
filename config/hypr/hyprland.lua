@@ -73,8 +73,6 @@ hl.on("hyprland.start", function ()
   -- QoL: clipboard history (text and images)
   hl.exec_cmd("wl-paste --type text --watch cliphist store")
   hl.exec_cmd("wl-paste --type image --watch cliphist store")
-  -- QoL: bluetooth tray icon (waybar has no bluetooth module)
-  hl.exec_cmd("blueman-applet")
 end)
 
 
@@ -113,6 +111,31 @@ hl.env("QT_QPA_PLATFORMTHEME", "kde")
 ---- LOOK AND FEEL ----
 -----------------------
 
+-- Accent colour, chosen with the waybar colour widget (waybar/scripts/theme.sh).
+-- Falls back to red if the file isn't there yet.
+local function accent_stops()
+    local path = os.getenv("HOME") .. "/.config/theme/accent"
+    local file = io.open(path, "r")
+    local main, dark, stops = "ff3344", "72161e", {}
+    if file then
+        for line in file:lines() do
+            -- %w excludes "_" in Lua patterns, so accent_dark needs the class
+            local key, rest = line:match("^([%w_]+)=(.*)$")
+            if key == "accent" then main = rest:match("%x%x%x%x%x%x") or main
+            elseif key == "accent_dark" then dark = rest:match("%x%x%x%x%x%x") or dark
+            elseif key == "gradient" then
+                for hex in rest:gmatch("%x%x%x%x%x%x") do stops[#stops + 1] = hex end
+            end
+        end
+        file:close()
+    end
+    if #stops == 0 then stops = { main, dark } end   -- single-colour themes
+    local colours = {}
+    for i, hex in ipairs(stops) do colours[i] = "rgba(" .. hex .. "ee)" end
+    return colours
+end
+local border_colours = accent_stops()
+
 -- Refer to https://wiki.hypr.land/Configuring/Basics/Variables/
 hl.config({
     general = {
@@ -122,7 +145,7 @@ hl.config({
         border_size = 2,
 
         col = {
-            active_border   = { colors = {"rgba(33ccffee)", "rgba(00ff99ee)"}, angle = 45 },
+            active_border   = { colors = border_colours, angle = 45 },
             inactive_border = "rgba(595959aa)",
         },
 
@@ -377,6 +400,9 @@ hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("wlogout"))
 hl.bind(mainMod .. " + N",      hl.dsp.exec_cmd("swaync-client -t -sw"))
 hl.bind(mainMod .. " + W",      hl.dsp.exec_cmd("~/.config/waybar/scripts/wifi-menu.sh"))
 hl.bind(mainMod .. " + B",      hl.dsp.exec_cmd("~/.config/waybar/scripts/power.sh menu"))
+
+-- Searchable list of these keybinds
+hl.bind(mainMod .. " + slash",  hl.dsp.exec_cmd("~/.config/hypr/scripts/keybinds.py")) -- this list
 
 -- Clipboard history and color picker
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("cliphist list | rofi -dmenu -p Clipboard | cliphist decode | wl-copy"))

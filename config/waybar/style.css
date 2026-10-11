@@ -1,25 +1,35 @@
+@import url("accent.css");
+
 * { font-family: sans-serif; font-size: 13px; min-height: 0; }
 window#waybar { background: rgba(20, 22, 30, 0.92); color: #e6e6e6; }
 #workspaces button, #taskbar button { padding: 0 8px; color: #e6e6e6; background: transparent; border-radius: 4px; }
 #workspaces button.active, #taskbar button.active { background: rgba(255, 255, 255, 0.15); }
 #workspaces button:hover, #taskbar button:hover { background: rgba(255, 255, 255, 0.25); }
-#clock, #tray, #pulseaudio, #network, #battery, #custom-power { padding: 0 10px; }
+#clock, #tray, #pulseaudio, #bluetooth, #network, #battery, #custom-power { padding: 0 10px; }
 #battery.warning { color: #f0c674; }
 #battery.critical { color: #e06c75; }
 
 /* Audio widget */
-#pulseaudio:hover { background: rgba(51, 204, 255, 0.15); border-radius: 6px; }
+#pulseaudio:hover { background: @accent_soft; border-radius: 6px; }
 #pulseaudio.muted { color: #e06c75; }
 
+/* Bluetooth widget */
+#bluetooth:hover { background: @accent_soft; border-radius: 6px; }
+#bluetooth.off, #bluetooth.disabled { color: #e06c75; }
+
 /* Network widget */
-#network:hover { background: rgba(51, 204, 255, 0.15); border-radius: 6px; }
+#network:hover { background: @accent_soft; border-radius: 6px; }
 #network.disconnected, #network.disabled { color: #e06c75; }
 #network.linked { color: #f0c674; }
 
 /* Power widget */
-#custom-power:hover { background: rgba(51, 204, 255, 0.15); border-radius: 6px; }
+#custom-power:hover { background: @accent_soft; border-radius: 6px; }
 #custom-power.charging { color: #98c379; }
 #custom-power.warning { color: #f0c674; }
 #custom-power.critical { color: #e06c75; }
 #custom-power.performance { border-bottom: 2px solid #e5c07b; }
 #custom-power.power-saver { border-bottom: 2px solid #98c379; }
+
+/* Colour widget */
+#custom-theme { color: @accent; }
+#custom-theme:hover { background: @accent_soft; border-radius: 6px; }

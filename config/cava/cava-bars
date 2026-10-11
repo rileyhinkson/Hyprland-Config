@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""Segmented bar visualiser on top of cava.
+
+Fedora's cava is built without OpenGL, so its shader renderer (and with it the
+LED look) is unavailable. This drives cava in raw mode instead and draws the
+bars here: each segment is a lower-half-block glyph, so every block gets a gap
+above it and the columns read as stacked LEDs.
+
+Colours come from ~/.config/theme/accent, the same file the waybar Color
+widget writes, so rainbow and trans gradients carry over.
+
+Run it instead of cava:  ~/.config/cava/cava-bars
+"""
+import os
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+
+ACCENT_FILE = os.path.expanduser("~/.config/theme/accent")
+BLOCK = "▄"          # lower half block: fills the bottom, leaving the gap
+GAP_COLUMNS = 1           # blank columns between bars
+GHOST = 0.22              # brightness of unlit blocks, so the panel never looks dead
+FALLBACK = ["#ff3344"]
+
+CONFIG = """[general]
+bars = {bars}
+framerate = 60
+autosens = 1
+[input]
+method = pulse
+source = {source}
+[output]
+method = raw
+raw_target = /dev/stdout
+data_format = ascii
+ascii_max_range = {rows}
+bar_delimiter = 59
+frame_delimiter = 10
+[smoothing]
+noise_reduction = 35
+"""
+
+
+def palette():
+    """Gradient stops for the current theme, low to high."""
+    primary, stops = None, []
+    try:
+        with open(ACCENT_FILE) as fh:
+            for line in fh:
+                key, _, value = line.partition("=")
+                value = value.strip()
+                if key == "accent" and value:
+                    primary = value
+                elif key == "gradient" and value:
+                    stops = value.split()
+    except OSError:
+        pass
+    return stops or ([primary] if primary else FALLBACK)
+
+
+def monitor_source():
+    """Monitor of the current default sink.
+
+    cava's own default captures the default *source*, which is usually a
+    microphone -- so it hears silence while music plays. Pointing it at the
+    default sink's monitor means the bars follow whatever output the audio
+    panel is set to.
+    """
+    try:
+        sink = subprocess.run(["pactl", "get-default-sink"],
+                              capture_output=True, text=True, timeout=5).stdout.strip()
+        if sink:
+            return sink + ".monitor"
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return "auto"
+
+
+def ramp(stops, rows):
+    """One rgb triple per row, interpolated through the stops."""
+    pts = [(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16)) for s in stops]
+    if len(pts) == 1:
+        return [pts[0]] * rows
+    out = []
+    for row in range(rows):
+        pos = (row / max(rows - 1, 1)) * (len(pts) - 1)
+        low = min(int(pos), len(pts) - 2)
+        frac = pos - low
+        a, b = pts[low], pts[low + 1]
+        out.append(tuple(round(a[i] + (b[i] - a[i]) * frac) for i in range(3)))
+    return out
+
+
+def run():
+    size = shutil.get_terminal_size()
+    rows = max(size.lines - 1, 4)
+    bars = max(size.columns // (1 + GAP_COLUMNS), 4)
+    colours = ramp(palette(), rows)
+    ghosts = [tuple(round(c * GHOST) for c in rgb) for rgb in colours]
+    spacer = " " * GAP_COLUMNS
+
+    with tempfile.NamedTemporaryFile("w", suffix=".conf", delete=False) as fh:
+        source = monitor_source()
+        fh.write(CONFIG.format(bars=bars, rows=rows, source=source))
+        config = fh.name
+
+    errors = tempfile.TemporaryFile("w+")
+    proc = subprocess.Popen(["cava", "-p", config], stdout=subprocess.PIPE,
+                            stderr=errors, text=True)
+    # Flush straight away: without this the clear sits in the buffer and the
+    # screen looks untouched while we wait for the first frame.
+    sys.stdout.write("\x1b[?25l\x1b[2J\x1b[H")
+    sys.stdout.write("listening to %s …\n" % source)
+    sys.stdout.flush()
+    first = True
+    try:
+        for line in proc.stdout:
+            if shutil.get_terminal_size() != size:
+                return True                        # resized: restart with new geometry
+            values = [int(v) for v in line.rstrip(";\n").split(";") if v != ""]
+            if not values:
+                continue
+            if len(values) < bars:      # never skip the frame: draw what arrived
+                values += [0] * (bars - len(values))
+            if first:                               # clear the waiting notice
+                sys.stdout.write("\x1b[2J")
+                first = False
+            frame = ["\x1b[H"]
+            for row in range(rows - 1, -1, -1):    # top row first
+                lit = "\x1b[38;2;%d;%d;%dm" % colours[row]
+                dim = "\x1b[38;2;%d;%d;%dm" % ghosts[row]
+                state = None
+                for value in values[:bars]:
+                    want = lit if (value > row or row == 0) else dim
+                    if want is not state:
+                        frame.append(want)
+                        state = want
+                    frame.append(BLOCK + spacer)
+                frame.append("\x1b[0m\n")
+            sys.stdout.write("".join(frame))
+            sys.stdout.flush()
+    except (BrokenPipeError, KeyboardInterrupt):
+        pass
+    finally:
+        proc.terminate()
+        try:
+            proc.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+        os.unlink(config)
+        if first:          # never drew a frame -- surface cava's own complaint
+            errors.seek(0)
+            why = errors.read().strip()
+            sys.stdout.write("\x1b[?25h\x1b[2J\x1b[H")
+            sys.stdout.write("cava produced no data from %s\n" % source)
+            if why:
+                sys.stdout.write(why + "\n")
+            sys.stdout.flush()
+        errors.close()
+    return False
+
+
+def main():
+    signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
+    try:
+        while run():
+            pass
+    finally:
+        sys.stdout.write("\x1b[0m\x1b[?25h\x1b[2J\x1b[H")   # cursor back, clean screen
+        sys.stdout.flush()
+
+
+if __name__ == "__main__":
+    main()
