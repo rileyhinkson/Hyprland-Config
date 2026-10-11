@@ -36,3 +36,11 @@ for i, output in ipairs({ "HDMI-A-2", "DP-1", "HDMI-A-1" }) do
         })
     end
 end
+
+-- Open Steam games on the middle (primary) monitor, whichever monitor is focused.
+-- steam_app_N covers Proton games; native Linux games each need their class listed.
+hl.window_rule({
+    name    = "games-on-primary",
+    match   = { class = "^(steam_app_\\d+|tf_linux64|hl2_linux|cs2|gamescope)$" },
+    monitor = "DP-1",
+})

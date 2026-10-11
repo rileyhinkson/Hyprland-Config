@@ -7,6 +7,10 @@ window#waybar { background: rgba(20, 22, 30, 0.92); color: #e6e6e6; }
 #battery.warning { color: #f0c674; }
 #battery.critical { color: #e06c75; }
 
+/* Audio widget */
+#pulseaudio:hover { background: rgba(51, 204, 255, 0.15); border-radius: 6px; }
+#pulseaudio.muted { color: #e06c75; }
+
 /* Network widget */
 #network:hover { background: rgba(51, 204, 255, 0.15); border-radius: 6px; }
 #network.disconnected, #network.disabled { color: #e06c75; }

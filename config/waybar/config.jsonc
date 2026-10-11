@@ -29,9 +29,22 @@
   },
   "tray": { "spacing": 8 },
   "pulseaudio": {
-    "format": "VOL {volume}%",
-    "format-muted": "MUTED",
-    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    "format": "<span font_family='FantasqueSansM Nerd Font Propo'>{icon}</span>  VOL {volume}%",
+    "format-muted": "<span font_family='FantasqueSansM Nerd Font Propo'>󰖁</span>  MUTED",
+    "format-icons": {
+      "headphone": "󰋋",
+      "headset": "󰋎",
+      "hands-free": "󰋎",
+      "hdmi": "󰍹",
+      "portable": "󰓃",
+      "car": "󰄋",
+      "default": ["󰕿", "󰖀", "󰕾"]
+    },
+    "scroll-step": 5,
+    "max-volume": 100,
+    "tooltip-format": "{desc}  {volume}%\n\nClick: audio panel · Middle: mute · Scroll: volume",
+    "on-click": "~/.config/waybar/scripts/audio-popup.py",
+    "on-click-middle": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
   },
   "network": {
     "interval": 5,
